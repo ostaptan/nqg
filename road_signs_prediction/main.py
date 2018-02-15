@@ -28,9 +28,9 @@ def load_data(data_directory):
   return images, labels
 
 
-
-
-# PREPARE DATA =======================================
+# START OF EVALUATION:
+# ---
+# Step 1. PREPARE DATA =======================================
 ROOT_PATH = sys.path[0]
 training_data_directory = os.path.join(ROOT_PATH, 'Training')
 testing_data_directory = os.path.join(ROOT_PATH, 'Testing')
@@ -48,20 +48,25 @@ images28 = rgb2gray(images28)
 
 
 
-# Neural net architecture ===========================
+# Step 2. Neural net architecture ===========================
+# input tensor
 x = tf.placeholder(dtype = tf.float32, shape = [None, 28, 28])
+# output tensor
 y = tf.placeholder(dtype = tf.int32, shape = [None])
+# first (input) layer
 images_flat = tf.contrib.layers.flatten(x)
+# hidden layer with relu activation function
 logits = tf.contrib.layers.fully_connected(images_flat, 62, tf.nn.relu)
 # Convert logits to label indexes
 correct_pred = tf.argmax(logits, 1)
 # Define a loss function
-loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels = y,
-                                                                    logits = logits))
+loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels = y, logits = logits))
 # Define an optimizer
 train_op = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
 # Define an accuracy metric
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+
+
 print("images_flat: ", images_flat)
 print("logits: ", logits)
 print("loss: ", loss)
@@ -73,12 +78,12 @@ print("predicted_labels: ", correct_pred)
 
 
 
-# START GRAPH SESSION TRAINING =====================
+# Step 3. START SESSION  =====================
 tf.set_random_seed(1234)
 sess = tf.Session()
 
 sess.run(tf.global_variables_initializer())
-
+# Training
 for i in range(201):
   _, accuracy_val = sess.run([train_op, accuracy], feed_dict={x: images28, y: labels})
   if i % 10 == 0:
@@ -92,7 +97,7 @@ for i in range(201):
 
 
 
-# Run the prediction operation ===================
+# Step 4. Run the prediction  ========================
 sample_indexes = random.sample(range(len(images28)), 10)
 sample_images = [images28[i] for i in sample_indexes]
 sample_labels = [labels[i] for i in sample_indexes]
@@ -112,7 +117,7 @@ print("Accuracy: {:.3f}".format(accuracy))
 
 
 
-# Display the predictions and the ground truth visually.
+# Step 5. Display the predictions and the ground truth visually.
 fig = plt.figure(figsize=(10, 10))
 for i in range(len(sample_images)):
     truth = sample_labels[i]
@@ -125,6 +130,8 @@ for i in range(len(sample_images)):
     plt.imshow(sample_images[i],  cmap="gray")
 
 plt.show()
+# =====================================================
 
-
+# Step 6. Close session
 sess.close()
+# =====================================================
